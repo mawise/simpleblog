@@ -30,7 +30,7 @@ gem 'rails', '~> 5.2.3'
 #gem 'sqlite3'
 gem 'pg', '~> 1.1.4'
 # Use Puma as the app server
-gem 'puma', '~> 3.11'
+gem 'puma', '~> 3.12'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -53,6 +53,10 @@ gem 'jbuilder', '~> 2.5'
 gem 'bootsnap', '>= 1.1.0', require: false
 
 #gem 'aws-sdk-rails', '~> 2.1.0'  #email with AWS SES
+
+group :production do
+  gem "aws-sdk-s3", require: false
+end
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
