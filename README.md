@@ -1,3 +1,7 @@
+# SimpleBlog is now Haven
+
+The version here has been deprecated, continued development at https://github.com/havenweb/haven
+
 # Haven
 
 [Haven](https://havenweb.org) is a simple blog application (formerly called SimpleBlog) built with Ruby on Rails, some motivating philosophies:
