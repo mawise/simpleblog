@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
 
+  resources :feeds, only: [:index, :create, :destroy]
+  get 'read', to: 'feeds#read'
+  get 'read/:id', to: 'feeds#read_feed', as: 'read_feed'
+
   get 'login_links/validate'
   get 'markdown', to: 'static#markdown'
   get 'themes', to: 'static#themes'
@@ -17,6 +21,10 @@ Rails.application.routes.draw do
   end
 
   resources :posts
+  get '/images/raw/:image_id/*filename', to: 'images#show', as: 'show_image'
+  get '/images/raw/:image_id', to: 'images#show'
+  get '/images/resized/:image_id/*filename', to: 'images#show_variant', as: 'show_image_variant'
+  get '/images/resized/:image_id', to: 'images#show_variant'
 
   post '/posts/:post_id/comments', to: 'comments#create', as: 'create_comment'
   delete '/comments/:comment_id', to: 'comments#destroy', as: 'destroy_comment'

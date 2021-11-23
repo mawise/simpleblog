@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_11_175433) do
+ActiveRecord::Schema.define(version: 2021_10_30_133754) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -44,6 +44,34 @@ ActiveRecord::Schema.define(version: 2021_02_11_175433) do
     t.bigint "post_id"
     t.index ["author_id"], name: "index_comments_on_author_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
+  end
+
+  create_table "feed_entries", force: :cascade do |t|
+    t.string "title"
+    t.text "content"
+    t.string "link"
+    t.string "guid"
+    t.datetime "published"
+    t.bigint "feed_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "sort_date"
+    t.string "audio"
+    t.index ["feed_id"], name: "index_feed_entries_on_feed_id"
+    t.index ["guid"], name: "index_feed_entries_on_guid"
+    t.index ["published"], name: "index_feed_entries_on_published"
+    t.index ["sort_date"], name: "index_feed_entries_on_sort_date"
+  end
+
+  create_table "feeds", force: :cascade do |t|
+    t.string "name"
+    t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "last_update"
+    t.integer "status", default: 0
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_feeds_on_user_id"
   end
 
   create_table "images", force: :cascade do |t|
@@ -101,6 +129,8 @@ ActiveRecord::Schema.define(version: 2021_02_11_175433) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "comments", "users", column: "author_id"
+  add_foreign_key "feed_entries", "feeds"
+  add_foreign_key "feeds", "users"
   add_foreign_key "login_links", "users"
   add_foreign_key "posts", "users", column: "author_id"
 end

@@ -1,8 +1,13 @@
-
+<% if current_user.admin >= 1 %>
+<p><%= link_to raw("<button type=\"button\">New Post</button>"), new_post_path %>
+<% end %>
 <hr> 
 
 <% if @posts.empty? %>
-<p>Nobody has written anything yet.</p>
+  <p>Nobody has written anything yet.</p>
+  <% if current_user.admin >= 1 %>
+  <p>You can click the New Post button above to start writing your first post.</p>
+  <% end %>
 <% end %>
 
 <% unless params[:page].nil? || params[:page]=="1" %>
@@ -10,7 +15,7 @@
 <% end %>
 
 <% @posts.each do |post| %>
-  <%= render "posts", post: post  %>
+  <%= render "posts", post: post, show_page: false %>
   <hr>
 <% end %>
 <%= paginate @posts %>

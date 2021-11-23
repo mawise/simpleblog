@@ -120,12 +120,12 @@ class PostsController < ApplicationController
   end
 
   def process_new_video(image) ## Image model used for all media
-    blob_path = path_for(image.blob)
+    blob_path = image_path(image)
     "\n\n<video controls><source src=\"#{blob_path}\" type=\"video/mp4\"></video>"
   end
 
   def process_new_audio(image) ## Image model used for all media
-    blob_path = path_for(image.blob)
+    blob_path = image_path(image)
     "\n\n<audio controls><source src=\"#{blob_path}\" type=\"audio/mpeg\"></audio>"
   end
 
@@ -135,16 +135,22 @@ class PostsController < ApplicationController
     blob_path = path_for(image.blob)
     image_meta = ActiveStorage::Analyzer::ImageAnalyzer.new(image.blob).metadata
     if image_meta[:width] > 1600 #resize at lower quality with link
-      variant = image.blob.variant(combine_options:{thumbnail: "1600", quality: '65%', interlace: 'plane', auto_orient: true}).processed
-      variant_path = path_for(variant)
-      return "\n\n[![](#{variant_path})](#{blob_path})"
+      return "\n\n<a href=\"#{image_path(image)}\">\n  <img src=\"#{image_resized_path(image)}\"></img>\n</a>"
     else #simple full image
-      return "\n\n![](#{blob_path})"
+      return "\n\n<img src=\"#{image_path(image)}\"></img>"
     end
   end
 
 
   private
+
+  def image_path(image)
+    "/images/raw/#{image.id}/#{image.blob.filename.to_s}"
+  end
+
+  def image_resized_path(image)
+    "/images/resized/#{image.id}/#{image.blob.filename.to_s}"
+  end
 
   def verify_can_modify_post(post)
     unless current_user.admin==1 or post.author == current_user
@@ -162,16 +168,18 @@ class PostsController < ApplicationController
   def handle_form_submit(params, view)
     @post = post_from_form(params)
     if params[:commit] == "Upload Selected Image"
-      @image = Image.new
-      @image.blob.attach params[:post][:pic]
-      @image.save
-      file_ext = path_for(@image.blob).split(".").last
-      if (file_ext == "mp3")
-        @post.content += process_new_audio(@image)
-      elsif (file_ext == "mp4")
-        @post.content += process_new_video(@image)
-      else
-        @post.content += process_new_image(@image)
+      params[:post][:pic].each do |pic|
+        @image = Image.new
+        @image.blob.attach pic
+        @image.save
+        file_ext = path_for(@image.blob).split(".").last
+        if (file_ext == "mp3")
+          @post.content += process_new_audio(@image)
+        elsif (file_ext == "mp4")
+          @post.content += process_new_video(@image)
+        else
+          @post.content += process_new_image(@image)
+        end
       end
       render view
     else

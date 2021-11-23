@@ -1,0 +1,39 @@
+<% error_mark = "&#10060;"
+   warning_mark = "&#9888;"
+   success_mark = "&#10003;" %>
+
+<h1>Manage Feeds</h1>
+
+<%= form_for @new_feed, url: {action: "create"} do |f| %>
+  <%= f.text_field :url %>
+  <%= f.submit "Add New Feed" %>
+<% end %>
+
+<% if @feeds.size > 0 %>
+<hr>
+<table>
+  <tr>
+    <th></th>
+    <th>Name</th>
+    <th>Url</th>
+    <th></th>
+  </tr>
+<% @feeds.each do |feed| %>
+  <tr>
+   <% if feed.last_update %>
+    <td><p title="Last Update: <%= distance_of_time_in_words(feed.last_update, DateTime.now) %> ago.">
+   <% else %>
+    <td><p title="Last Update: Never">
+   <% end %>
+      <%= raw(feed.fetch_succeeded? ? success_mark : feed.fetch_failed? ? warning_mark : error_mark) %>
+    </td>
+    <td><p><%= link_to feed.name, read_feed_path(feed) %></td>
+    <td><p><%= feed.url %></td>
+    <td><p><%= link_to 'Delete', feed_path(feed), 
+            method: :delete,
+            data: { confirm: "Are you sure you want to delete #{feed.name} with url #{feed.url}?" } %></td>
+  </tr>
+<% end %>
+<% else # no feeds added yet %>
+<p>Add your first feed by pasting it into the form above and clicking the Add New Feed button.</p>
+<% end %>
