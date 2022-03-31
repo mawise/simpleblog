@@ -7,18 +7,18 @@ ruby '2.7.2'
 gem 'dotenv-rails', '2.7.5'
 
 # For parsing markdown
-gem 'commonmarker', '~> 0.20'
+gem 'commonmarker', '~> 0.23'
 
 # For validating CSS
 gem 'sassc', '~> 2.4.0'
 
 # For making user stylesheet !important
-gem 'css_parser', '1.10.0' # pinned because we use private methods
+gem 'css_parser', '= 1.10.0' # pinned because we use private methods
 
 gem 'rb-readline'
 
 # Image processing
-gem 'image_processing', '~> 1.9.3'
+gem 'image_processing', '~> 1.12.2'
 
 # For Auth
 gem 'devise', '~> 4.7.1'
@@ -28,12 +28,12 @@ gem 'bcrypt', '~> 3.1.16'
 gem 'kaminari', '~> 1.2.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.2.6'
+gem 'rails', '~> 5.2.7'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
 gem 'pg', '~> 1.1.4'
 # Use Puma as the app server
-gem 'puma', '~> 4.3'
+gem 'puma', '~> 4.3.12'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets

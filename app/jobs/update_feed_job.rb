@@ -37,6 +37,15 @@ class UpdateFeedJob < ApplicationJob
 
   private
 
+  def truncate_feed(feed, max_count)
+    entries = feed.feed_entries.order(sort_date: :desc).page(2).per(max_count)
+    entries.each do |e|
+      e.destroy!
+    end
+  rescue
+    puts "Error truncating feed: #{feed.name}"
+  end
+
   def update_feed(feed, earliest_time, latest_time)
     # update feed title if not yet set
     if feed.name.nil?
@@ -100,13 +109,14 @@ class UpdateFeedJob < ApplicationJob
       feed.fetch_succeeded!
       feed.last_update = DateTime.now
       feed.save
+      # truncate_feed(feed, 100)
     end # release lock
   end
 
   def fetch_feed_title(feed_url)
     cleanurl, auth_opts = parse_auth(feed_url)
-    open(cleanurl, auth_opts) do |rss|
-      feed = RSS::Parser.parse(rss)
+    URI.open(cleanurl, auth_opts) do |rss|
+      feed = RSS::Parser.parse(rss, validate: false)
       if (feed.feed_type == "rss")
         return feed.channel.title
       elsif (feed.feed_type == "atom")
@@ -116,15 +126,15 @@ class UpdateFeedJob < ApplicationJob
       end
     end
   rescue => e
-    STDERR.puts e.message
+    logger.error "ERROR when fetching feed #{feed_url} #{e.class} #{e.message}"
     return "Invalid Feed"
   end
 
   def fetch_feed_content(feed_url)
     entries = []
     cleanurl, auth_opts = parse_auth(feed_url)
-    open(cleanurl, auth_opts) do |rss|
-      feed = RSS::Parser.parse(rss)
+    URI.open(cleanurl, auth_opts) do |rss|
+      feed = RSS::Parser.parse(rss, validate: false)
       if (feed.feed_type == "rss")
         feed.items.each do |item|
           entry = {}
@@ -135,8 +145,14 @@ class UpdateFeedJob < ApplicationJob
           entry[ENTRY_CONTENT] = item.description
           entry[ENTRY_CONTENT] = item.content_encoded if item.content_encoded
           entry[ENTRY_GUID] = item.guid.content
-          if item.enclosure && item.enclosure.type == "audio/mpeg"
-            entry[ENTRY_AUDIO] = item.enclosure.url
+          if item.enclosure 
+            if item.enclosure.type == "audio/mpeg"
+              entry[ENTRY_AUDIO] = item.enclosure.url
+            elsif item.enclosure.type.start_with? "image/" # If there is an image in the enclosure
+              unless entry[ENTRY_CONTENT].include? "<img " # and no images in the content
+                entry[ENTRY_CONTENT] = "<img src=\"#{item.enclosure.url}\" /><br/>" + entry[ENTRY_CONTENT] # then include the enclosure image
+              end
+            end
           else
             entry[ENTRY_AUDIO] = nil
           end
@@ -148,12 +164,16 @@ class UpdateFeedJob < ApplicationJob
           entry[FEED_TITLE] = feed.title.content
           entry[ENTRY_TITLE] = item.title.content
           entry[ENTRY_LINK] = item.link.href
-          begin
+          if !item.published.nil?
             entry[ENTRY_DATE] = item.published.content
-          rescue
-            entry[ENTRY_DATE] = item.published
+          else
+            entry[ENTRY_DATE] = item.updated.content
+          end 
+          if !item.content.nil?
+            entry[ENTRY_CONTENT] = CGI.unescapeHTML(item.content.to_s)
+          else
+            entry[ENTRY_CONTENT] = CGI.unescapeHTML(item.summary.to_s)
           end
-          entry[ENTRY_CONTENT] = CGI.unescapeHTML(item.content.to_s)
           entry[ENTRY_GUID] = item.id.to_s
           entry[ENTRY_AUDIO] = nil # TODO podcast support for Atom feeds
           entries << entry
@@ -165,14 +185,15 @@ class UpdateFeedJob < ApplicationJob
 
   def parse_auth(full_url)
     scheme, rest = full_url.split("://",2)
+    opts = {}
+    opts["User-Agent"] = "haven"
     if (rest.include?(":") and rest.include?("@")) # scheme://user:pass@url...
-      opts = {}
       user, rest = rest.split(":",2)
       pass, rest = rest.split("@",2)
       opts[:http_basic_authentication] = [user,pass]
       return ["#{scheme}://#{rest}", opts]
     else
-      return [full_url, {}]
+      return [full_url, opts]
     end
   end
 end

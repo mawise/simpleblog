@@ -6,6 +6,22 @@ class PostsController < ApplicationController
 
   def index
     @posts = Post.order(datetime: :desc).page(params[:page])
+    recent_comments = Comment.where('created_at >= ?', 1.week.ago).order(created_at: :desc).to_a
+    recent_likes = Like.where('created_at >= ?', 1.week.ago).order(created_at: :desc).to_a
+    @recent_comments_and_likes = []
+    while recent_comments.size > 0 or recent_likes.size > 0
+      if recent_comments.size == 0
+        @recent_comments_and_likes << recent_likes.shift
+      elsif recent_likes.size == 0
+        @recent_comments_and_likes << recent_comments.shift
+      else
+        if recent_likes.first.created_at > recent_comments.first.created_at
+          @recent_comments_and_likes << recent_likes.shift
+        else
+          @recent_comments_and_likes << recent_comments.shift
+        end
+      end
+    end
     @settings = SettingsController.get_setting
     @css = true
   end
@@ -116,7 +132,9 @@ class PostsController < ApplicationController
   # convert relative URLs to absolute URLs when referencing media (for RSS)
   # prefix should be scheme://domain, eg: "https://example.com"
   def self.convert_urls(content, prefix)
-    return content.gsub("=\"/rails/active_storage/","=\"#{prefix}/rails/active_storage/")
+    return content
+      .gsub("=\"/rails/active_storage/","=\"#{prefix}/rails/active_storage/")
+      .gsub("=\"/images/","=\"#{prefix}/images/")
   end
 
   def process_new_video(image) ## Image model used for all media
@@ -168,9 +186,9 @@ class PostsController < ApplicationController
   def handle_form_submit(params, view)
     @post = post_from_form(params)
     if params[:commit] == "Upload Selected Image"
-      params[:post][:pic].each do |pic|
+      if  !(params[:post][:pic].nil?)
         @image = Image.new
-        @image.blob.attach pic
+        @image.blob.attach params[:post][:pic]
         @image.save
         file_ext = path_for(@image.blob).split(".").last
         if (file_ext == "mp3")
@@ -180,6 +198,8 @@ class PostsController < ApplicationController
         else
           @post.content += process_new_image(@image)
         end
+      else # attachment does not exist
+        flash.now[:alert] = "You did not choose a file to upload"
       end
       render view
     else
