@@ -28,8 +28,11 @@ class PostsController < ApplicationController
 
   def rss
     if !check_basic_auth
-      head :unauthorized
+      request_http_basic_authentication("Haven RSS Feed")
     else
+      basic_auth_creds = Base64.decode64(request.authorization.split("Basic ").last)
+      basic_auth_user = basic_auth_creds.split(":").first
+      @user = User.find_by(basic_auth_username: basic_auth_user)
       @posts = Post.order(datetime: :desc).page(1)
       @settings = SettingsController.get_setting
       render layout: false
@@ -43,26 +46,31 @@ class PostsController < ApplicationController
   end
 
   def new
+    @settings = SettingsController.get_setting
     @post ||= Post.new
     @post.datetime = DateTime.now if @post.datetime.nil?
     @post.content = "" if @post.content.nil?
   end
 
   def edit
+    @settings = SettingsController.get_setting
     @post = Post.find(params[:id])
     verify_can_modify_post(@post)
     @post
   end
 
   def create
+    @settings = SettingsController.get_setting
     handle_form_submit(params, 'new')
   end
 
   def update
+    @settings = SettingsController.get_setting
     handle_form_submit(params, 'edit')
   end
 
   def destroy
+    @settings = SettingsController.get_setting
     @post = Post.find(params[:id])
     verify_can_modify_post(@post)
     @post.destroy
