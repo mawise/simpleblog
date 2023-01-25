@@ -81,7 +81,7 @@ GEM
     chromedriver-helper (2.1.1)
       archive-zip (~> 0.10)
       nokogiri (~> 1.8)
-    commonmarker (0.23.4)
+    commonmarker (0.23.7)
     concurrent-ruby (1.1.10)
     crass (1.0.6)
     css_parser (1.10.0)
