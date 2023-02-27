@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set +e ## allow startup to continue if operating in a shared DB without creation permissions
+bin/rails db:create 
+set -e
+bin/rails db:migrate
+bin/rails assets:precompile
+
+bin/rails r ./deploymentscripts/lib/ruby/create_user.rb "$HAVEN_USER_EMAIL" $HAVEN_USER_PASS
+
+chmod +x /deploymentscripts/lib/docker/copy_env.sh
+/deploymentscripts/lib/docker/copy_env.sh
+cron
+
+set +e
+PIDFILE=/tmp/pids/server.pid
+if test -f "$PIDFILE"; then
+  echo "Found PID file at $PIDFILE"
+  PID=$(cat $PIDFILE)
+  ps -aux | grep $PID | grep 3000 ## puma webserver listens on port 3000
+  exit_code=$?
+  if [ $exit_code -eq 0 ]; then ## found a running service with that pid
+    echo "PID $PID matches a running server"
+    #kill -9 $PID    ## Kill running server?
+  else
+    echo "PID $PID is stale, no matching server.  Removing PID file."
+    rm -f $PIDFILE
+  fi
+fi
+set -e
+
+bin/rails s -e production -p 3000

@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '2.7.2'
+ruby '2.7.6'
 
 # For configuration files
 gem 'dotenv-rails', '2.7.5'
@@ -28,7 +28,7 @@ gem 'bcrypt', '~> 3.1.16'
 gem 'kaminari', '~> 1.2.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.2.7.1'
+gem 'rails', '~> 5.2.8.1'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
 gem 'pg', '~> 1.1.4'
@@ -76,10 +76,10 @@ end
 
 group :test do
   # Adds support for Capybara system testing and selenium driver
-  gem 'capybara', '>= 2.15'
-#  gem 'selenium-webdriver'
+  gem 'capybara', '~> 3.37'
+  gem 'selenium-webdriver', '~> 4.5'
   # Easy installation and use of chromedriver to run system tests with Chrome
-  gem 'chromedriver-helper'
+  gem 'webdrivers', '~> 5.2'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

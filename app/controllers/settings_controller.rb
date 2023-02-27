@@ -69,7 +69,11 @@ class SettingsController < ApplicationController
   end
 
   def self.get_setting
-    Setting.find(1)
+    s = Setting.first
+    if s.nil?
+      s = Setting.new
+    end
+    s
   rescue
     Setting.new
   end

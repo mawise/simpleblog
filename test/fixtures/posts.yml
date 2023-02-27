@@ -2,8 +2,10 @@
 
 one:
   datetime: 2019-08-14 14:46:33
-  content: MyText
+  content: MyTextOne
+  author_id: 1
 
 two:
   datetime: 2019-08-14 14:46:33
-  content: MyText
+  content: MyTextTwo
+  author_id: 1

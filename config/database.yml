@@ -3,6 +3,7 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
   encoding: unicode
+  host: <%= ENV['HAVEN_DB_HOST'] {'localhost'} %>
 
 development:
   <<: *default
@@ -14,6 +15,8 @@ development:
 test:
   <<: *default
   database: rails_test_db
+  username: <%= ENV.fetch('PG_USER', nil) %>
+  password: <%= ENV.fetch('PG_PASSWORD', nil) %>
 
 production:
   <<: *default

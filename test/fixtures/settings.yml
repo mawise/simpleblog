@@ -1,15 +1,2 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  title: MyString
-  subtitle: MyString
-  author: MyString
-  visibility: MyString
-  css: MyText
-
-two:
-  title: MyString
-  subtitle: MyString
-  author: MyString
-  visibility: MyString
-  css: MyText
