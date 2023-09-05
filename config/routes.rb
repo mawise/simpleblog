@@ -8,6 +8,13 @@ Rails.application.routes.draw do
   delete 'indieauth/token/:token_id', to: 'indieauth#token_destroy', as: "destroy_token"
   get 'indieauth/user/:user_id', to: 'indieauth#user'
 
+  get 'micropub', to: 'micropub#query', as: "micropub"
+  post 'micropub', to: 'micropub#create'
+  post 'micropub_media', to: 'micropub#media', as: 'micropub_media'
+
+  get 'microsub', to: 'microsub#get', as: "microsub"
+  post 'microsub', to: 'microsub#create'
+
   resources :feeds, only: [:index, :create, :destroy]
   get 'read', to: 'feeds#read'
   get 'read/:id', to: 'feeds#read_feed', as: 'read_feed'
